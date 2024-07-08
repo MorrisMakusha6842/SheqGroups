@@ -8,6 +8,8 @@ import { MiniCheckoutComponent } from './shopping/mini-checkout/mini-checkout.co
 import { MiniShoppingCartComponent } from './shopping/mini-shopping-cart/mini-shopping-cart.component';
 import { ShoppingCartComponent } from './shopping/shopping-cart/shopping-cart.component';
 import { SettingsComponent } from './admin/settings/settings.component';
+import { RegisterUserComponent } from './register-user/register-user.component';
+import { LoginComponent } from './user/login/login.component';
 
 
 
@@ -48,5 +50,15 @@ export const routes: Routes = [
         path: 'settings',
         component:SettingsComponent
    },
+   {
+     path: 'register-user',
+     component:RegisterUserComponent
+   },
+   {
+     path: 'login',
+     component:LoginComponent
+   },
+
+
    
 ];
