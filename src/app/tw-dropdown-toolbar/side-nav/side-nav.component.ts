@@ -1,5 +1,6 @@
 import { NgClass } from '@angular/common';
 import { Component, EventEmitter, inject, Input, Output } from '@angular/core';
+import { HomeBComponent } from '../../home-b/home-b.component';
 export type LinkActiveModel = {
 link: string;
 showSideBar: boolean
@@ -9,7 +10,8 @@ showSideBar: boolean
   selector: 'app-side-nav',
   standalone: true,
   imports: [
-    NgClass
+    NgClass,
+    HomeBComponent
   ],
   templateUrl: './side-nav.component.html',
   styleUrl: './side-nav.component.scss'

@@ -14,7 +14,7 @@ import { LinkActiveModel, SideNavComponent } from './side-nav/side-nav.component
   styleUrl: './tw-dropdown-toolbar.component.scss'
 })
 export class TwDropdownToolbarComponent {
-showSideBar=false;
+showSideBar=true;
 private router = inject(Router);
 
 toggleSideNav() {

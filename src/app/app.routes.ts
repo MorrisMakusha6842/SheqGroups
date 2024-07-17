@@ -10,6 +10,11 @@ import { ShoppingCartComponent } from './shopping/shopping-cart/shopping-cart.co
 import { SettingsComponent } from './admin/settings/settings.component';
 import { RegisterUserComponent } from './register-user/register-user.component';
 import { LoginComponent } from './user/login/login.component';
+import { MixingComponent } from './production/mixing/mixing.component';
+import { AddIngredientsComponent } from './production/mixing/add-ingredients/add-ingredients.component';
+import { HomeBComponent } from './home-b/home-b.component';
+import { EmployeeBincardComponent } from './employee-bincard/employee-bincard.component';
+import { EmployeePageComponent } from './employee-page/employee-page.component';
 
 
 
@@ -58,7 +63,21 @@ export const routes: Routes = [
      path: 'login',
      component:LoginComponent
    },
-
-
+   {
+     path: 'mixing',
+     component:MixingComponent
+   },
+   {
+     path: 'home-b',
+     component:HomeBComponent
+   },
+   {
+     path: 'employee-bincard',
+     component:EmployeeBincardComponent
+   },
+   {
+     path: 'employee-page',
+     component:EmployeePageComponent
+   },
    
 ];
