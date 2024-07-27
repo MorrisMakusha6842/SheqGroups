@@ -15,6 +15,14 @@ import { AddIngredientsComponent } from './production/mixing/add-ingredients/add
 import { HomeBComponent } from './home-b/home-b.component';
 import { EmployeeBincardComponent } from './employee-bincard/employee-bincard.component';
 import { EmployeePageComponent } from './employee-page/employee-page.component';
+import { EmployeeIdComponent } from './employee-id/employee-id.component';
+import { MyTrainingHeaderComponent } from './my-training-header/my-training-header.component';
+import { TrainingSliderComponent } from './training-slider/training-slider.component';
+import { ProgressRatingComponent } from './my-training-header/progress-rating/progress-rating.component';
+import { TrainingWelcomeComponent } from './my-training-header/training-welcome/training-welcome.component';
+import { CourseCardComponent } from './my-training-header/course-card/course-card.component';
+import { SectionComponent } from './my-training-header/section/section.component';
+import { ChapterComponent } from './my-training-header/chapter/chapter.component';
 
 
 
@@ -78,6 +86,38 @@ export const routes: Routes = [
    {
      path: 'employee-page',
      component:EmployeePageComponent
+   },
+   {
+     path: 'employee-id',
+     component:EmployeeIdComponent
+   },
+   {
+     path: 'my-training-header',
+     component:MyTrainingHeaderComponent
+   },
+   {
+     path: 'training-slider',
+     component:TrainingSliderComponent
+   },
+   {
+     path: 'progress-rating',
+     component:ProgressRatingComponent
+   },
+   {
+     path: 'training-welcome',
+     component:TrainingWelcomeComponent
+   },
+   {
+     path: 'course-card',
+     component:CourseCardComponent
+   },
+   {
+     path: 'section',
+     component:SectionComponent
+   },
+   {
+     path: 'chapter',
+     component:ChapterComponent
    },
    
 ];
