@@ -23,6 +23,8 @@ import { TrainingWelcomeComponent } from './my-training-header/training-welcome/
 import { CourseCardComponent } from './my-training-header/course-card/course-card.component';
 import { SectionComponent } from './my-training-header/section/section.component';
 import { ChapterComponent } from './my-training-header/chapter/chapter.component';
+import { AnimationComponent } from './home-b/animation/animation.component';
+import { SupaCleanComponent } from './supa-clean/supa-clean.component';
 
 
 
@@ -118,6 +120,13 @@ export const routes: Routes = [
    {
      path: 'chapter',
      component:ChapterComponent
-   },
-   
+   },  
+   {
+     path: 'animation',
+     component:AnimationComponent
+   },  
+   {
+     path: 'supa-clean',
+     component:SupaCleanComponent
+   },  
 ];
