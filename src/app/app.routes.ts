@@ -25,6 +25,7 @@ import { SectionComponent } from './my-training-header/section/section.component
 import { ChapterComponent } from './my-training-header/chapter/chapter.component';
 import { AnimationComponent } from './home-b/animation/animation.component';
 import { SupaCleanComponent } from './supa-clean/supa-clean.component';
+import { FlipcardsComponent } from './flipcards/flipcards.component';
 
 
 
@@ -128,5 +129,9 @@ export const routes: Routes = [
    {
      path: 'supa-clean',
      component:SupaCleanComponent
+   },  
+   {
+     path: 'flipcards',
+     component:FlipcardsComponent
    },  
 ];

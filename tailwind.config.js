@@ -1,3 +1,5 @@
+const { transform } = require('typescript')
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
   content: [
@@ -19,11 +21,12 @@ module.exports = {
       },
       animation: {
         'spin-slow': 'spin 3s linear infinite',
-      }
+      },
     },
   },
   plugins: [
     require('daisyui'),
   ],
+
 }
 
