@@ -26,6 +26,9 @@ import { ChapterComponent } from './my-training-header/chapter/chapter.component
 import { AnimationComponent } from './home-b/animation/animation.component';
 import { SupaCleanComponent } from './supa-clean/supa-clean.component';
 import { FlipcardsComponent } from './flipcards/flipcards.component';
+import { UserListComponent } from './user-list/user-list.component';
+import { UserCardComponent } from './user-list/user-card/user-card.component';
+import { TaskListComponent } from './task-list/task-list.component';
 
 
 
@@ -133,5 +136,17 @@ export const routes: Routes = [
    {
      path: 'flipcards',
      component:FlipcardsComponent
+   },  
+   {
+     path: 'user-list',
+     component:UserListComponent
+   },  
+   {
+     path: 'user-card',
+     component:UserCardComponent
+   },  
+   {
+     path: 'task-list',
+     component:TaskListComponent
    },  
 ];
