@@ -1,0 +1,25 @@
+<div class="flex flex-col w-full bg-slate-200 mx-auto mt-16 rounded-lg">
+    <h1 class="w-full text-center font-bold text-2xl mt-14 ">Welcome DC</h1>
+    <div class="flex flex-row w-4/12 justify-center text-center p-6 cursor-pointer mx-auto">
+        <div
+          (click)="myView='Bio'" 
+          class="border-2 border-black w-4/12 hover:bg-black hover:text-white border-r-0">Bio</div>
+        <div 
+          (click)="myView='Views'"
+          class="tab border-2 border-black w-4/12 hover:bg-black hover:text-white  border-r-0">Views</div>
+        <div
+          (click)="myView='Position'" 
+          class="tab border-2 border-black w-4/12 hover:bg-black hover:text-white">Position/Role</div>
+    </div>
+    @if (myView==='Bio') {
+        <app-bio></app-bio>
+
+    }
+    @if (myView==='Views') {
+        <app-views></app-views>
+
+    }
+    @if (myView==='Position') {
+        <app-position></app-position>
+    }
+</div>

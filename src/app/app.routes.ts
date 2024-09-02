@@ -29,6 +29,10 @@ import { FlipcardsComponent } from './flipcards/flipcards.component';
 import { UserListComponent } from './user-list/user-list.component';
 import { UserCardComponent } from './user-list/user-card/user-card.component';
 import { TaskListComponent } from './task-list/task-list.component';
+import { ProfileCardComponent } from './profile-card/profile-card.component';
+import { BioComponent } from './profile-card/bio/bio.component';
+import { ViewsComponent } from './profile-card/views/views.component';
+import { PositionComponent } from './profile-card/position/position.component';
 
 
 
@@ -148,5 +152,21 @@ export const routes: Routes = [
    {
      path: 'task-list',
      component:TaskListComponent
+   },  
+   {
+     path: 'profile-card',
+     component:ProfileCardComponent
+   },  
+   {
+     path: 'bio',
+     component:BioComponent
+   },  
+   {
+     path: 'views',
+     component:ViewsComponent
+   },  
+   {
+     path: 'position',
+     component:PositionComponent
    },  
 ];
