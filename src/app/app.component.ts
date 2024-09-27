@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { TwDropdownToolbarComponent } from './tw-dropdown-toolbar/tw-dropdown-toolbar.component';
 import { NgClass } from '@angular/common';
 import { RegisterUserComponent } from './register-user/register-user.component';
+import { TrainingSliderComponent } from './training-slider/training-slider.component';
 
 @Component({
   selector: 'app-root',
@@ -11,7 +12,8 @@ import { RegisterUserComponent } from './register-user/register-user.component';
     RouterOutlet,
     TwDropdownToolbarComponent,
     NgClass,
-    RegisterUserComponent
+    RegisterUserComponent,
+    TrainingSliderComponent
   ],
 
   templateUrl: './app.component.html',

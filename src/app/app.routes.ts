@@ -33,6 +33,9 @@ import { ProfileCardComponent } from './profile-card/profile-card.component';
 import { BioComponent } from './profile-card/bio/bio.component';
 import { ViewsComponent } from './profile-card/views/views.component';
 import { PositionComponent } from './profile-card/position/position.component';
+import { BuyPageComponent } from './savealot/buy-page/buy-page.component';
+import { FsqsSliderComponent } from './fsqs-slider/fsqs-slider.component';
+import { EmailFormComponent } from './email-form/email-form.component';
 
 
 
@@ -168,5 +171,17 @@ export const routes: Routes = [
    {
      path: 'position',
      component:PositionComponent
+   },  
+   {
+     path: 'buy-page',
+     component:BuyPageComponent
+   },  
+   {
+     path: 'fsqs-slider',
+     component:FsqsSliderComponent
+   },  
+   {
+     path: 'email-form',
+     component:EmailFormComponent
    },  
 ];
