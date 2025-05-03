@@ -196,6 +196,11 @@ hideCategoryTooltip(): void {
   }
 }
 
+navigateTo(url: string): void {
+  this.router.navigate([url]);
+
+}
+
 // New method to start the hiding process with a delay
 startHideCategoryTooltip(): void {
   this.hideTooltipTimeout = setTimeout(() => {
