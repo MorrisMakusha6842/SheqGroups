@@ -1,0 +1,361 @@
+<div class="min-h-screen bg-slate-200 p-8">
+  <div class="w-full mx-auto">
+    <div class="flex flex-col w-full bg-white p-6 rounded-xl shadow-lg">
+      <h1 class="text-3xl font-bold text-gray-800 mb-6 border-b border-gray-200 pb-4">Client Service Request</h1>
+
+      <!-- Stepper Navigation -->
+      <div class="mb-8">
+        <ol class="flex items-center justify-between w-full text-sm font-medium text-center text-gray-500 dark:text-gray-400">
+          <li *ngFor="let step of [1, 2, 3]" 
+            [ngClass]="{'text-green-600 dark:text-green-500': currentStep >= step}" 
+            class="relative flex items-center justify-center px-4 py-2">
+            <span [ngClass]="{'border-green-600 dark:border-green-500': currentStep >= step}" 
+                  class="flex items-center justify-center">
+              <svg *ngIf="currentStep > step" class="w-4 h-4 mr-2 sm:w-5 sm:h-5" aria-hidden="true" 
+                xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5Zm3.707 8.207-4 4a1 1 0 0 1-1.414 0l-2-2a1 1 0 0 1 1.414-1.414L9 10.586l3.293-3.293a1 1 0 0 1 1.414 1.414Z" />
+              </svg>
+              <span *ngIf="currentStep === step" 
+                [ngClass]="{'border-green-600 dark:border-green-500': currentStep === step}" 
+                class="mr-2 border-2 rounded-full w-6 h-6 flex items-center justify-center text-xs px-1">
+                {{step}}
+              </span>
+              <span *ngIf="currentStep !== step" class="mr-2">{{step}}</span>
+              <span [ngSwitch]="step">
+                <span *ngSwitchCase="1">Client Details</span>
+                <span *ngSwitchCase="2">Location & Worksite</span>
+                <span *ngSwitchCase="3">Services & Preferences</span>
+              </span>
+            </span>
+          </li>
+        </ol>
+      </div>
+
+      <!-- Form Content -->
+      <form [formGroup]="clientForm" (ngSubmit)="onSubmit()" class="space-y-6">
+        <!-- Step 1: Client Details -->
+        <div *ngIf="currentStep === 1" class="space-y-6 animate-fade-in">
+          <h2 class="text-xl font-semibold text-gray-700 mb-5">Client Information</h2>
+
+          <!-- Full Name -->
+          <div>
+            <label for="fullName" class="block text-sm font-medium text-gray-700">Full Name <span class="text-red-500">*</span></label>
+              <input type="text" id="fullName" formControlName="fullName" 
+                placeholder="Enter your full name"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              [class.border-red-500]="clientForm.get('fullName')?.invalid && clientForm.get('fullName')?.touched">
+            <div *ngIf="clientForm.get('fullName')?.invalid && clientForm.get('fullName')?.touched" 
+              class="text-red-500 text-xs mt-1">
+              Full Name is required
+            </div>
+          </div>
+
+          <!-- Business Name -->
+          <div>
+            <label for="businessName" class="block text-sm font-medium text-gray-700">Business Name</label>
+              <input type="text" id="businessName" formControlName="businessName" 
+                placeholder="Enter business/company name (optional)"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
+          </div>
+
+          <!-- Contact Info -->
+          <div>
+            <label for="contactInfo" class="block text-sm font-medium text-gray-700">Contact Info <span class="text-red-500">*</span></label>
+              <input type="text" id="contactInfo" formControlName="contactInfo" 
+                placeholder="Enter primary contact details"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              [class.border-red-500]="clientForm.get('contactInfo')?.invalid && clientForm.get('contactInfo')?.touched">
+            <div *ngIf="clientForm.get('contactInfo')?.invalid && clientForm.get('contactInfo')?.touched" 
+              class="text-red-500 text-xs mt-1">
+              Contact Info is required
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+              <input type="email" id="email" formControlName="email" 
+                placeholder="example@company.com"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              [class.border-red-500]="clientForm.get('email')?.invalid && clientForm.get('email')?.touched">
+            <div *ngIf="clientForm.get('email')?.invalid && clientForm.get('email')?.touched" 
+              class="text-red-500 text-xs mt-1">
+              Please enter a valid email address
+            </div>
+          </div>
+
+          <!-- Phone Number -->
+          <div>
+            <label for="phoneNumber" class="block text-sm font-medium text-gray-700">Phone Number <span class="text-red-500">*</span></label>
+              <input type="tel" id="phoneNumber" formControlName="phoneNumber" 
+                placeholder="+27 XX XXX XXXX"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              [class.border-red-500]="clientForm.get('phoneNumber')?.invalid && clientForm.get('phoneNumber')?.touched">
+            <div *ngIf="clientForm.get('phoneNumber')?.invalid && clientForm.get('phoneNumber')?.touched" 
+              class="text-red-500 text-xs mt-1">
+              Please enter a valid South African phone number (e.g., +27 12 345 6789)
+            </div>
+          </div>
+
+          <!-- Client Image -->
+          <div>
+            <label for="clientImage" class="block text-sm font-medium text-gray-700">Client Image</label>
+            <input type="file" id="clientImage" (change)="onFileSelected($event)" accept="image/*"
+              class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm">
+            <div *ngIf="selectedImage" class="mt-2">
+              <img [src]="selectedImage" alt="Selected client image" class="h-32 w-32 object-cover rounded-full">
+            </div>
+          </div>
+        </div>
+
+        <!-- Step 2: Location & Worksite -->
+        <div *ngIf="currentStep === 2" class="space-y-6 animate-fade-in">
+          <h2 class="text-xl font-semibold text-gray-700 mb-5">Location Details</h2>
+
+          <div formArrayName="siteLocations">
+            <div *ngFor="let site of siteLocations().controls; let i = index" [formGroupName]="i" 
+              class="mb-6 p-4 border border-gray-200 rounded-md">
+              <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-medium text-gray-700">Site {{i + 1}}</h3>
+                <button *ngIf="i > 0" type="button" (click)="removeSite(i)"
+                  class="text-red-500 hover:text-red-700">
+                  <span class="sr-only">Remove site</span>
+                  <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+
+              <!-- Address -->
+              <div class="space-y-4">
+                <div>
+                  <label [for]="'address' + i" class="block text-sm font-medium text-gray-700">
+                    Address <span class="text-red-500">*</span>
+                  </label>
+                  <div class="relative">
+                    <input [id]="'address' + i" 
+                      type="text"
+                      formControlName="address"
+                      class="block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                      [class.border-red-500]="site.get('address')?.invalid && site.get('address')?.touched"
+                      (input)="filterAddresses($any($event.target).value)"
+                      (focus)="currentAddressFocusIndex = i"
+                      (blur)="hideAddressSuggestions(i)"
+                      placeholder="Type to search address..."
+                      autocomplete="off">
+                      
+                    <!-- Address Suggestions -->
+                    <div *ngIf="addressSuggestions.length > 0 && showAddressSuggestions[i]" 
+                      class="absolute z-10 mt-1 w-full bg-white shadow-lg rounded-md border border-gray-300">
+                      <ul class="py-1 max-h-60 overflow-auto">
+                        <li *ngFor="let prediction of addressSuggestions"
+                          class="px-4 py-2 hover:bg-gray-100 cursor-pointer"
+                          (mousedown)="$event.preventDefault()"
+                          (click)="selectAddressSuggestion(i, prediction)">
+                          {{prediction.fullAddress}}
+                        </li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- City -->
+                <div>
+                  <label [for]="'city' + i" class="block text-sm font-medium text-gray-700">
+                    City <span class="text-red-500">*</span>
+                  </label>
+                  <input [id]="'city' + i"
+                    type="text"
+                    formControlName="city"
+                    readonly
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 sm:text-sm">
+                </div>
+
+                <!-- Province -->
+                <div>
+                  <label [for]="'state' + i" class="block text-sm font-medium text-gray-700">
+                    Province <span class="text-red-500">*</span>
+                  </label>
+                  <input [id]="'state' + i"
+                    type="text"
+                    formControlName="state"
+                    readonly
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm bg-gray-50 sm:text-sm">
+                </div>
+
+                <!-- Postal Code -->
+                <div>
+                  <label [for]="'postalCode' + i" class="block text-sm font-medium text-gray-700">
+                    Postal Code <span class="text-red-500">*</span>
+                  </label>
+                  <input [id]="'postalCode' + i"
+                    type="text"
+                    formControlName="postalCode"
+                    placeholder="Enter 4-digit postal code"
+                    class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+                    [class.border-red-500]="site.get('postalCode')?.invalid && site.get('postalCode')?.touched">
+                  <div *ngIf="site.get('postalCode')?.invalid && site.get('postalCode')?.touched" 
+                    class="text-red-500 text-xs mt-1">
+                    Please enter a valid 4-digit postal code
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Add Site Button -->
+          <button type="button" (click)="addSite()"
+            class="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            <svg class="-ml-1 mr-2 h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+            </svg>
+            Add Another Site
+          </button>
+
+          <!-- Area Size -->
+          <div>
+            <label for="areaSize" class="block text-sm font-medium text-gray-700">Area Size <span class="text-red-500">*</span></label>
+              <input type="text" id="areaSize" formControlName="areaSize"
+                placeholder="e.g., 1000 sq meters"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"
+              [class.border-red-500]="clientForm.get('areaSize')?.invalid && clientForm.get('areaSize')?.touched">
+          </div>
+
+          <!-- Client Category -->
+          <div>
+            <label for="clientCategory" class="block text-sm font-medium text-gray-700">Client Category <span class="text-red-500">*</span></label>
+            <select id="clientCategory" formControlName="clientCategory"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+              [class.border-red-500]="clientForm.get('clientCategory')?.invalid && clientForm.get('clientCategory')?.touched">
+              <option value="">Select Category</option>
+              <option value="residential">Residential</option>
+              <option value="commercial">Commercial</option>
+              <option value="industrial">Industrial</option>
+              <option value="healthcare">Healthcare</option>
+              <option value="government">Government</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Step 3: Services & Preferences -->
+        <div *ngIf="currentStep === 3" class="space-y-6 animate-fade-in">
+          <h2 class="text-xl font-semibold text-gray-700 mb-5">Services & Preferences</h2>
+
+          <!-- Service Time -->
+          <div>
+            <label for="serviceTime" class="block text-sm font-medium text-gray-700">Preferred Service Time <span class="text-red-500">*</span></label>
+            <select id="serviceTime" formControlName="serviceTime"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+              [class.border-red-500]="clientForm.get('serviceTime')?.invalid && clientForm.get('serviceTime')?.touched">
+              <option value="">Select Preferred Time</option>
+              <option value="morning">Morning (8AM-12PM)</option>
+              <option value="afternoon">Afternoon (12PM-4PM)</option>
+              <option value="evening">Evening (4PM-8PM)</option>
+            </select>
+          </div>
+
+          <!-- Cleaning Type -->
+          <div>
+            <label for="cleaningType" class="block text-sm font-medium text-gray-700">Cleaning Type <span class="text-red-500">*</span></label>
+            <select id="cleaningType" formControlName="cleaningType"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+              [class.border-red-500]="clientForm.get('cleaningType')?.invalid && clientForm.get('cleaningType')?.touched">
+              <option value="">Select Type</option>
+              <option value="residential">Residential</option>
+              <option value="commercial">Commercial</option>
+            </select>
+          </div>
+
+          <!-- Frequency -->
+          <div>
+            <label for="frequency" class="block text-sm font-medium text-gray-700">Frequency <span class="text-red-500">*</span></label>
+            <select id="frequency" formControlName="frequency"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+              [class.border-red-500]="clientForm.get('frequency')?.invalid && clientForm.get('frequency')?.touched">
+              <option value="">Select Frequency</option>
+              <option value="weekly">Weekly</option>
+              <option value="bi-weekly">Bi-Weekly</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </div>
+
+          <!-- Risk Level -->
+          <div>
+            <label for="riskLevel" class="block text-sm font-medium text-gray-700">Risk Level <span class="text-red-500">*</span></label>
+            <select id="riskLevel" formControlName="riskLevel"
+              class="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-green-500 focus:border-green-500 sm:text-sm rounded-md"
+              [class.border-red-500]="clientForm.get('riskLevel')?.invalid && clientForm.get('riskLevel')?.touched">
+              <option value="">Select Risk Level</option>
+              <option value="low">Low</option>
+              <option value="medium">Medium</option>
+              <option value="high">High</option>
+            </select>
+          </div>
+
+          <!-- PPE Requirements -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-2">PPE Requirements</label>
+            <div class="space-y-2">
+              <div class="flex items-center">
+                <input type="checkbox" id="ppeHardHat" formControlName="ppeHardHat"
+                  class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                <label for="ppeHardHat" class="ml-2 block text-sm text-gray-900">Hard Hat</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="ppeSafetyGlasses" formControlName="ppeSafetyGlasses"
+                  class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                <label for="ppeSafetyGlasses" class="ml-2 block text-sm text-gray-900">Safety Glasses</label>
+              </div>
+              <div class="flex items-center">
+                <input type="checkbox" id="ppeGloves" formControlName="ppeGloves"
+                  class="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded">
+                <label for="ppeGloves" class="ml-2 block text-sm text-gray-900">Gloves</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- Notes -->
+          <div>
+            <label for="notes" class="block text-sm font-medium text-gray-700">Notes</label>
+              <textarea id="notes" formControlName="notes" rows="3"
+                placeholder="Any additional information or special instructions"
+                class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:ring-green-500 focus:border-green-500 sm:text-sm"></textarea>
+          </div>
+        </div>
+
+        <!-- Navigation Buttons -->
+        <div class="flex justify-between pt-5">
+          <button type="button" 
+            *ngIf="currentStep > 1" 
+            (click)="previousStep()"
+            class="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+            Previous
+          </button>
+
+          <div class="flex justify-end">
+            <button type="button" 
+              *ngIf="currentStep < 3" 
+              (click)="nextStep()"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
+              Next
+            </button>
+            
+            <button type="submit" 
+              *ngIf="currentStep === 3"
+              [disabled]="clientForm.invalid || isSubmitting"
+              class="inline-flex items-center px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 disabled:opacity-50 disabled:cursor-not-allowed">
+              <span *ngIf="!isSubmitting">Submit</span>
+              <span *ngIf="isSubmitting" class="flex items-center">
+                <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                  <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Submitting...
+              </span>
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

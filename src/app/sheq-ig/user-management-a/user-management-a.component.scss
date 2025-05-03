@@ -1,0 +1,15 @@
+/* filepath: /c:/Users/PC/Documents/projects/angular/my-pos/src/app/sheq-ig/user-management-a/user-management-a.component.scss */
+.submitting {
+    animation: pulse 1s infinite alternate;
+  }
+  
+  @keyframes pulse {
+    from {
+      opacity: 1;
+      transform: scale(1);
+    }
+    to {
+      opacity: 0.7;
+      transform: scale(1.05);
+    }
+  }
