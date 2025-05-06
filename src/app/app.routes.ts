@@ -8,6 +8,17 @@ import { AdminSheqComponent } from './sheq-ig/admin-sheq/admin-sheq.component';
 import { CourseDetailsComponent } from './sheq-ig/course-details/course-details.component';
 import { HelpCenterComponent } from './sheq-ig/help-center/help-center.component';
 import { AdminOverviewComponent } from './sheq-ig/admin-sheq/admin-overview/admin-overview.component';
+import { EmployeeDashboardComponent } from './sheq-ig/employee-dashboard/employee-dashboard.component';
+import { NotificationsComponent } from './sheq-ig/notifications/notifications.component';
+import { FundoIsmsComponent } from './fundo-isms/fundo-isms.component';
+import { LandingPageComponent } from './fundo-isms/landing-page/landing-page.component';
+import { DashboardComponent } from './fundo-isms/dashboard/dashboard.component';
+import { AnalyticsComponent } from './fundo-isms/analytics/analytics/analytics.component';
+import { InventoryComponent } from './fundo-isms/inventory/inventory.component';
+import { BinCountsComponent } from './fundo-isms/inventory/bin-counts/bin-counts.component';
+import { StockAdjustmentsComponent } from './fundo-isms/inventory/stock-adjustments/stock-adjustments.component';
+import { StockOverviewComponent } from './fundo-isms/inventory/stock-overview/stock-overview.component';
+import { WarehouseComponent } from './fundo-isms/inventory/warehouse/warehouse.component';
 
 export const routes: Routes = [
   
@@ -16,16 +27,60 @@ export const routes: Routes = [
     component:VideoOutputComponent
   },
   {
-    path: 'course-dashboard',
-    component:CourseDashboardComponent
-  },
-  {
     path: 'admin-sheq',
     component:AdminSheqComponent
   },
   {
+    path: 'course-dashboard',
+    component:CourseDashboardComponent
+  },
+  {
+    path: 'notifications',
+    component:NotificationsComponent
+  },
+  {
+    path: 'employee-dashboard',
+    component:EmployeeDashboardComponent
+  },
+  {
+    path: 'inventory',
+    component:InventoryComponent
+  },
+  {
+    path: 'bin-counts',
+    component:BinCountsComponent
+  },
+  {
+    path: 'stock-adjustments',
+    component:StockAdjustmentsComponent
+  },
+  {
+    path: 'stock-overview',
+    component:StockOverviewComponent
+  },
+  {
+    path: 'warehouse',
+    component:WarehouseComponent
+  },
+  {
+    path: 'analytics',
+    component:AnalyticsComponent
+  },
+  {
     path: 'admin-overview',
     component:AdminOverviewComponent
+  },
+  {
+    path: 'dashboard',
+    component:DashboardComponent
+  },
+  {
+    path: 'landing-page',
+    component:LandingPageComponent
+  },
+  {
+    path: 'fundo-isms',
+    component:FundoIsmsComponent
   },
   {
     path: 'help-center',
