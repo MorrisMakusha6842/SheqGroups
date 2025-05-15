@@ -1,0 +1,64 @@
+<!-- ... existing summary stats cards code ... -->
+
+<div class="management-panels">
+  <!-- Course & Content Management Panel -->
+  <div class="panel course-management-panel">
+    <div class="accordion-container">
+      <!-- Add New Course Accordion -->
+      <div class="accordion-item" *ngFor="let item of accordionItems">
+        <div class="accordion-header" (click)="toggleAccordion(item.id)">
+          <h3>{{ item.title }}</h3>
+          <span class="toggle-icon">{{ item.isOpen ? '−' : '+' }}</span>
+        </div>
+        
+        <div class="accordion-content" [class.open]="item.isOpen">
+          <!-- Course Library Section -->
+          <div *ngIf="item.id === 'library'" class="course-library">
+            <div class="search-filter-bar">
+              <input type="text" placeholder="Search courses..." class="search-input">
+              <select class="status-filter">
+                <option>All Statuses</option>
+                <option>Draft</option>
+                <option>Published</option>
+                <option>Archived</option>
+              </select>
+            </div>
+
+            <table class="course-table">
+              <thead>
+                <tr>
+                  <th *ngFor="let col of tableColumns" 
+                      (click)="sortTable(col.key)">
+                    {{ col.label }}
+                    <span class="sort-icon">{{ currentSort === col.key ? (sortDirection === 'asc' ? '↑' : '↓') : '' }}</span>
+                  </th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let course of filteredCourses">
+                  <td>{{ course.title }}</td>
+                  <td>
+                    <span class="status-badge" [class.draft]="course.status === 'Draft'"
+                      [class.published]="course.status === 'Published'">
+                      {{ course.status }}
+                    </span>
+                  </td>
+                  <td>{{ course.instructor }}</td>
+                  <td>{{ course.modified | date }}</td>
+                  <td>
+                    <button class="btn-approve">Approve</button>
+                    <button class="btn-reject">Reject</button>
+                    <button class="btn-preview" (click)="openPreview(course)">Preview</button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ... rest of panels ... -->
+</div>

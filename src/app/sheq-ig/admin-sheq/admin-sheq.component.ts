@@ -1,4 +1,4 @@
-import { Component, ViewChildren, QueryList, ElementRef, AfterViewInit, Renderer2, HostListener } from '@angular/core';
+import { Component, ViewChildren, QueryList, ElementRef, AfterViewInit, Renderer2, HostListener, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { trigger, transition, style, animate } from '@angular/animations';
 
@@ -19,10 +19,10 @@ import { trigger, transition, style, animate } from '@angular/animations';
     ])
   ]
 })
-export class AdminSheqComponent implements AfterViewInit {
+export class AdminSheqComponent implements AfterViewInit, OnInit {
   // Query for tab buttons to get their dimensions
   @ViewChildren('tabButton') tabButtons!: QueryList<ElementRef>;
-  
+  adminName: string;
   // Default active tab
   activeTab: string = 'overview';
   activeTabIndex: number = 0;
@@ -40,8 +40,16 @@ export class AdminSheqComponent implements AfterViewInit {
     { id: 'wishlist', label: 'User-Management' },
     { id: 'schedule', label: 'Report and analytics' }
   ];
+
+
   
   constructor(private renderer: Renderer2) {}
+
+  ngOnInit(): void {
+    // Initialize the adminName property
+    this.adminName = 'John Doe'; // Replace with the actual admin name or fetch it from a service
+  }
+
 
   @HostListener('window:resize')
   onResize() {
@@ -50,6 +58,8 @@ export class AdminSheqComponent implements AfterViewInit {
       this.updateIndicator(this.activeTabIndex);
     }, 0);
   }
+
+  ng 
   
   ngAfterViewInit() {
     // Set initial position after view is initialized
@@ -64,6 +74,7 @@ export class AdminSheqComponent implements AfterViewInit {
     this.activeTabIndex = index;
     this.updateIndicator(index);
   }
+
   
   // Fixed update indicator method for centered tabs
   updateIndicator(index: number): void {

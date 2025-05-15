@@ -19,6 +19,12 @@ import { BinCountsComponent } from './fundo-isms/inventory/bin-counts/bin-counts
 import { StockAdjustmentsComponent } from './fundo-isms/inventory/stock-adjustments/stock-adjustments.component';
 import { StockOverviewComponent } from './fundo-isms/inventory/stock-overview/stock-overview.component';
 import { WarehouseComponent } from './fundo-isms/inventory/warehouse/warehouse.component';
+import { AdminDashboardComponent } from './sheq-ig/admin-dashboard/admin-dashboard.component';
+import { CourseManagementComponent } from './sheq-ig/admin-dashboard/course-management/course-management.component';
+import { LogInComponent } from './sheq-ig/log-in/log-in.component';
+import { ScheduleComponent } from './sheq-ig/schedule/schedule.component';
+import { GetStartedComponent } from './sheq-ig/get-started/get-started.component';
+
 
 export const routes: Routes = [
   
@@ -29,6 +35,18 @@ export const routes: Routes = [
   {
     path: 'admin-sheq',
     component:AdminSheqComponent
+  },
+  {
+    path: 'admin-sheq',
+    component:AdminSheqComponent
+  },
+  {
+    path: 'schedule',
+    component:ScheduleComponent
+  },
+  {
+    path: 'get-started',
+    component:GetStartedComponent
   },
   {
     path: 'course-dashboard',
@@ -55,6 +73,10 @@ export const routes: Routes = [
     component:StockAdjustmentsComponent
   },
   {
+    path: 'admin-dashboard',
+    component:AdminDashboardComponent
+  },
+  {
     path: 'stock-overview',
     component:StockOverviewComponent
   },
@@ -75,10 +97,6 @@ export const routes: Routes = [
     component:DashboardComponent
   },
   {
-    path: 'landing-page',
-    component:LandingPageComponent
-  },
-  {
     path: 'fundo-isms',
     component:FundoIsmsComponent
   },
@@ -97,6 +115,26 @@ export const routes: Routes = [
   {
   path: 'course-details',
     component:CourseDetailsComponent
+  },
+  {
+    path: 'schedule',
+    component:ScheduleComponent 
+  },
+  {
+  path: 'course-management',
+    component:CourseManagementComponent
+  },
+  {
+  path: 'course-management',
+    component:CourseManagementComponent
+  },
+  {
+  path: 'log-in',
+    component:LogInComponent
+  },
+  {
+  path: 'landing-page',
+    component:LandingPageComponent
   },
   {
     path: '',
