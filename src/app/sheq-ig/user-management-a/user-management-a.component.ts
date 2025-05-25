@@ -1,246 +1,161 @@
-import { Component, OnInit, NgZone, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormsModule, ReactiveFormsModule } from '@angular/forms';
-import { FormArray, FormBuilder, FormGroup, Validators, AbstractControl, ValidationErrors } from '@angular/forms';
-import { Observable, Subject } from 'rxjs';
-import { debounceTime, distinctUntilChanged, filter, takeUntil } from 'rxjs/operators';
+import { Component, OnInit } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
+import { UserService } from '../../services/user.service';
 
 @Component({
   selector: 'app-user-management-a',
   standalone: true,
-  imports: [
-    CommonModule,
-    FormsModule,
-    ReactiveFormsModule
-  ],
+  imports: [CommonModule, FormsModule],
   templateUrl: './user-management-a.component.html',
-  styleUrls: ['./user-management-a.component.scss']
+  styleUrl: './user-management-a.component.scss'
 })
-export class UserManagementAComponent implements OnInit, OnDestroy {
-  currentStep = 1;
-  clientForm!: FormGroup;
-  summary: any = {};
-  mapUrl: string = '';
-  currentAddressFocusIndex: number | null = null;
-  private dummyLocations = [
-    {
-      fullAddress: '123 Main Street, Johannesburg, Gauteng, South Africa',
-      address: '123 Main Street',
-      city: 'Johannesburg',
-      province: 'Gauteng'
-    },
-    {
-      fullAddress: '456 Church Street, Pretoria, Gauteng, South Africa',
-      address: '456 Church Street',
-      city: 'Pretoria',
-      province: 'Gauteng'
-    },
-    {
-      fullAddress: '789 Long Street, Cape Town, Western Cape, South Africa',
-      address: '789 Long Street',
-      city: 'Cape Town',
-      province: 'Western Cape'
-    },
-    {
-      fullAddress: '321 Smith Street, Durban, KwaZulu-Natal, South Africa',
-      address: '321 Smith Street',
-      city: 'Durban',
-      province: 'KwaZulu-Natal'
-    },
-    {
-      fullAddress: '654 President Avenue, Bloemfontein, Free State, South Africa',
-      address: '654 President Avenue',
-      city: 'Bloemfontein',
-      province: 'Free State'
-    }
+export class UserManagementAComponent implements OnInit {
+
+  // Province filter
+  selectedProvince: string = 'All Provinces';
+
+  // User metrics properties
+  totalActiveUsers: number = 152;
+  usersAwaitingApproval: number = 8;
+  totalUsers: number = 165;
+  completedUsers: number = 134;
+  userCompletionPercentage: number = 81;
+
+  // User registration requests data
+  userRegistrationRequests = [
+    { fullName: 'Sarah Mitchell', department: 'Safety', position: 'Safety Inspector', requestDate: new Date('2024-12-15'), status: 'Pending' },
+    { fullName: 'Michael Johnson', department: 'Operations', position: 'Site Supervisor', requestDate: new Date('2024-12-14'), status: 'Approved' },
+    { fullName: 'Emily Davis', department: 'Training', position: 'Training Coordinator', requestDate: new Date('2024-12-13'), status: 'Pending' },
+    { fullName: 'Robert Wilson', department: 'Maintenance', position: 'Equipment Technician', requestDate: new Date('2024-12-12'), status: 'Rejected' },
+    { fullName: 'Lisa Anderson', department: 'HR', position: 'HR Specialist', requestDate: new Date('2024-12-11'), status: 'Pending' },
+    { fullName: 'David Brown', department: 'Safety', position: 'Safety Officer', requestDate: new Date('2024-12-10'), status: 'Approved' },
+    { fullName: 'Jennifer Taylor', department: 'Operations', position: 'Shift Leader', requestDate: new Date('2024-12-09'), status: 'Pending' },
+    { fullName: 'Mark Thompson', department: 'Training', position: 'Instructor', requestDate: new Date('2024-12-08'), status: 'Approved' },
+    { fullName: 'Amanda Garcia', department: 'Maintenance', position: 'Maintenance Supervisor', requestDate: new Date('2024-12-07'), status: 'Pending' },
+    { fullName: 'Christopher Lee', department: 'Operations', position: 'Site Manager', requestDate: new Date('2024-12-06'), status: 'Approved' },
+    { fullName: 'Rachel Martinez', department: 'Safety', position: 'Safety Analyst', requestDate: new Date('2024-12-05'), status: 'Rejected' },
+    { fullName: 'Kevin Miller', department: 'Training', position: 'Skills Assessor', requestDate: new Date('2024-12-04'), status: 'Pending' }
   ];
-  addressSuggestions: Array<{
-    fullAddress: string;
-    address: string;
-    city: string;
-    province: string;
-  }> = [];
-  selectedImage: string | null = null;
-  isSubmitting: boolean = false;
-  showAddressSuggestions: boolean[] = [false];
 
-  private readonly destroy$ = new Subject<void>();
+  // User activity updates data
+  userActivityUpdates = [
+    { action: 'Completed Safety Training', userName: 'John Smith', timestamp: new Date('2024-12-15'), type: 'Training' },
+    { action: 'Profile Updated', userName: 'Sarah Johnson', timestamp: new Date('2024-12-14'), type: 'Profile' },
+    { action: 'Logged In', userName: 'Mike Wilson', timestamp: new Date('2024-12-13'), type: 'Login' },
+    { action: 'Training Progress Updated', userName: 'Emma Davis', timestamp: new Date('2024-12-12'), type: 'Training' },
+    { action: 'Password Changed', userName: 'Tom Brown', timestamp: new Date('2024-12-11'), type: 'Profile' },
+    { action: 'Completed Assessment', userName: 'Lisa Garcia', timestamp: new Date('2024-12-10'), type: 'Training' },
+    { action: 'Logged In', userName: 'David Lee', timestamp: new Date('2024-12-09'), type: 'Login' },
+    { action: 'Certificate Downloaded', userName: 'Rachel Green', timestamp: new Date('2024-12-08'), type: 'Training' },
+    { action: 'Profile Photo Updated', userName: 'James Carter', timestamp: new Date('2024-12-07'), type: 'Profile' },
+    { action: 'Training Enrolled', userName: 'Maria Rodriguez', timestamp: new Date('2024-12-06'), type: 'Training' },
+    { action: 'Logged In', userName: 'Robert Kim', timestamp: new Date('2024-12-05'), type: 'Login' },
+    { action: 'Contact Info Updated', userName: 'Amy Zhang', timestamp: new Date('2024-12-04'), type: 'Profile' },
+    { action: 'Course Completed', userName: 'Carlos Lopez', timestamp: new Date('2024-12-03'), type: 'Training' },
+    { action: 'Logged In', userName: 'Jennifer White', timestamp: new Date('2024-12-02'), type: 'Login' }
+  ];
 
-  // Custom validators
-  private phoneNumberValidator(control: AbstractControl): ValidationErrors | null {
-    const validPhoneRegex = /^\+27\s\d{2}\s\d{3}\s\d{4}$/;
-    return validPhoneRegex.test(control.value) ? null : { invalidPhone: true };
-  }
+  // User table configuration
+  userTableColumns = [
+    { key: 'name', label: 'Name' },
+    { key: 'department', label: 'Department' },
+    { key: 'position', label: 'Position' },
+    { key: 'status', label: 'Status' },
+    { key: 'lastLogin', label: 'Last Login' }
+  ];
 
-  private postalCodeValidator(control: AbstractControl): ValidationErrors | null {
-    const validPostalCodeRegex = /^\d{4}$/;
-    return validPostalCodeRegex.test(control.value) ? null : { invalidPostalCode: true };
-  }
+  // User directory data
+  filteredUsers = [
+    { name: 'John Smith', department: 'Safety', position: 'Safety Manager', status: 'Active', lastLogin: new Date('2024-12-15') },
+    { name: 'Sarah Johnson', department: 'Operations', position: 'Site Supervisor', status: 'Active', lastLogin: new Date('2024-12-14') },
+    { name: 'Mike Wilson', department: 'Training', position: 'Training Manager', status: 'Active', lastLogin: new Date('2024-12-13') },
+    { name: 'Emma Davis', department: 'HR', position: 'HR Coordinator', status: 'Pending', lastLogin: new Date('2024-12-12') },
+    { name: 'Tom Brown', department: 'Maintenance', position: 'Maintenance Lead', status: 'Active', lastLogin: new Date('2024-12-11') },
+    { name: 'Lisa Garcia', department: 'Safety', position: 'Safety Officer', status: 'Active', lastLogin: new Date('2024-12-10') },
+    { name: 'David Lee', department: 'Operations', position: 'Shift Manager', status: 'Inactive', lastLogin: new Date('2024-12-05') },
+    { name: 'Rachel Green', department: 'Training', position: 'Instructor', status: 'Active', lastLogin: new Date('2024-12-14') },
+    { name: 'James Carter', department: 'Maintenance', position: 'Technician', status: 'Active', lastLogin: new Date('2024-12-13') },
+    { name: 'Maria Rodriguez', department: 'Safety', position: 'Safety Analyst', status: 'Active', lastLogin: new Date('2024-12-12') }
+  ];
+
+  // Sorting properties
+  currentUserSort = 'name';
+  userSortDirection: 'asc' | 'desc' = 'asc';
 
   constructor(
-    private fb: FormBuilder,
-    private ngZone: NgZone
+    private userService: UserService,
+    private router: Router
   ) {
-    this.clientForm = this.fb.group({
-      fullName: ['', Validators.required],
-      businessName: [''],
-      contactInfo: ['', Validators.required],
-      email: ['', [Validators.email]],
-      phoneNumber: ['', [Validators.required, this.phoneNumberValidator.bind(this)]],
-      siteLocations: this.fb.array([this.createSiteLocation()]),
-      areaSize: ['', Validators.required],
-      clientCategory: ['', Validators.required],
-      gpsLocation: [''],
-      cleaningType: ['', Validators.required],
-      serviceTime: ['', Validators.required],
-      frequency: ['', Validators.required],
-      notes: [''],
-      riskLevel: ['', Validators.required],
-      ppeHardHat: [false],
-      ppeSafetyGlasses: [false],
-      ppeGloves: [false]
-    });
+    // Removed FormBuilder and initializeForm call
   }
 
-  ngOnInit(): void {
-    const siteLocations = this.siteLocations();
-    for (let i = 0; i < siteLocations.length; i++) {
-      this.setupAddressAutocomplete(i);
-    }
+  ngOnInit() {
+    this.calculateUserMetrics();
   }
 
-  ngOnDestroy(): void {
-    this.destroy$.next();
-    this.destroy$.complete();
+  private calculateUserMetrics() {
+    // Calculate user completion percentage
+    this.userCompletionPercentage = Math.round((this.completedUsers / this.totalUsers) * 100);
+    
+    // Update total active users
+    this.totalActiveUsers = this.totalUsers - this.usersAwaitingApproval;
   }
 
-  siteLocations(): FormArray {
-    return this.clientForm.get('siteLocations') as FormArray;
-  }
-
-  createSiteLocation(): FormGroup {
-    return this.fb.group({
-      address: ['', Validators.required],
-      city: ['', Validators.required],
-      state: ['', Validators.required],
-      postalCode: ['', [Validators.required, this.postalCodeValidator.bind(this)]]
-    });
-  }
-
-  addSite(): void {
-    const newSiteIndex = this.siteLocations().length;
-    this.siteLocations().push(this.createSiteLocation());
-    this.showAddressSuggestions[newSiteIndex] = false;
-    this.setupAddressAutocomplete(newSiteIndex);
-  }
-
-  removeSite(index: number): void {
-    this.siteLocations().removeAt(index);
-    if (this.currentAddressFocusIndex === index) {
-      this.currentAddressFocusIndex = null;
-      this.addressSuggestions = [];
-    } else if (this.currentAddressFocusIndex && this.currentAddressFocusIndex > index) {
-      this.currentAddressFocusIndex--;
-    }
-  }
-
-  nextStep(): void {
-    if (this.currentStep < 3) {
-      this.currentStep++;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  previousStep(): void {
-    if (this.currentStep > 1) {
-      this.currentStep--;
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
-  }
-
-  setupAddressAutocomplete(index: number): void {
-    const siteGroup = this.siteLocations().at(index) as FormGroup;
-    const addressControl = siteGroup.get('address');
-
-    if (addressControl) {
-      addressControl.valueChanges
-        .pipe(
-          debounceTime(300),
-          distinctUntilChanged(),
-          filter((value: string) => value.length > 2),
-          takeUntil(this.destroy$)
-        )
-        .subscribe(value => {
-          this.filterAddresses(value);
-        });
-    }
-  }
-
-  filterAddresses(searchText: string): void {
-    if (!searchText || searchText.length < 3) {
-      this.addressSuggestions = [];
-      return;
-    }
-
-    this.ngZone.run(() => {
-      const searchLower = searchText.toLowerCase();
-      this.addressSuggestions = this.dummyLocations.filter(location =>
-        location.fullAddress.toLowerCase().includes(searchLower) ||
-        location.address.toLowerCase().includes(searchLower) ||
-        location.city.toLowerCase().includes(searchLower) ||
-        location.province.toLowerCase().includes(searchLower)
-      );
-      
-      if (this.currentAddressFocusIndex !== null) {
-        this.showAddressSuggestions[this.currentAddressFocusIndex] = true;
-      }
-    });
-  }
-
-  hideAddressSuggestions(index: number): void {
-    setTimeout(() => {
-      this.showAddressSuggestions[index] = false;
-    }, 200);
-  }
-
-  onFileSelected(event: Event): void {
-    const file = (event.target as HTMLInputElement)?.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (e: ProgressEvent<FileReader>) => {
-        this.selectedImage = e.target?.result as string;
-      };
-      reader.readAsDataURL(file);
-    }
-  }
-
-  selectAddressSuggestion(index: number, prediction: {
-    fullAddress: string;
-    address: string;
-    city: string;
-    province: string;
-  }): void {
-    const siteGroup = this.siteLocations().at(index) as FormGroup;
-    siteGroup.patchValue({
-      address: prediction.address,
-      city: prediction.city,
-      state: prediction.province
-    });
-    this.showAddressSuggestions[index] = false;
-    this.addressSuggestions = [];
-  }
-
-  onSubmit(): void {
-    if (this.clientForm.valid) {
-      console.log('Form submitted:', this.clientForm.value);
-      this.isSubmitting = true;
-      // Simulating API call
-      setTimeout(() => {
-        this.isSubmitting = false;
-        alert('Form submitted successfully!');
-      }, 1500);
+  // User table sorting
+  sortUserTable(key: string) {
+    if (this.currentUserSort === key) {
+      this.userSortDirection = this.userSortDirection === 'asc' ? 'desc' : 'asc';
     } else {
-      alert('Please fill in all required fields.');
+      this.currentUserSort = key;
+      this.userSortDirection = 'asc';
     }
+
+    this.filteredUsers.sort((a, b) => {
+      const aValue = a[key as keyof typeof a];
+      const bValue = b[key as keyof typeof b];
+      
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        return this.userSortDirection === 'asc' 
+          ? aValue.localeCompare(bValue) 
+          : bValue.localeCompare(aValue);
+      }
+      
+      if (aValue instanceof Date && bValue instanceof Date) {
+        return this.userSortDirection === 'asc' 
+          ? aValue.getTime() - bValue.getTime() 
+          : bValue.getTime() - aValue.getTime();
+      }
+      
+      return 0;
+    });
+  }
+
+  // User management methods
+  viewUserProfile(user: any) {
+    console.log('Viewing user profile:', user);
+    // Implement user profile modal or navigation
+  }
+
+  editUser(user: any) {
+    console.log('Editing user:', user);
+    // Implement user edit modal or navigation
+  }
+
+  // Additional methods can be added here for user management functionality
+  approveUserRequest(request: any) {
+    console.log('Approving user request:', request);
+    // Implement approval logic
+  }
+
+  rejectUserRequest(request: any) {
+    console.log('Rejecting user request:', request);
+    // Implement rejection logic
+  }
+
+  // Navigation to create user account
+  navigateToCreateUser() {
+    this.router.navigate(['/create-user-account']);
   }
 }

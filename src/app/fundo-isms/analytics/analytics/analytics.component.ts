@@ -200,7 +200,7 @@ export class AnalyticsComponent implements OnInit, AfterViewInit {
   ngOnInit(): void {
     const currentUser = this.authService.currentUser;
     if (currentUser) {
-      this.userName = currentUser.firstName || 'User';
+      // this.userName = currentUser.firstName || 'User';
     }
   }
 

@@ -4,6 +4,8 @@ import { FormsModule } from '@angular/forms';
 import { AdminOverviewComponent } from '../admin-sheq/admin-overview/admin-overview.component';
 import { UserListComponent } from '../../user-list/user-list.component';
 import { SheqIgComponent } from '../sheq-ig.component';
+import { CourseManagementComponent } from './course-management/course-management.component';
+import { UserManagementAComponent } from '../user-management-a/user-management-a.component';
 
 interface TrainingCourse {
   name: string;
@@ -22,7 +24,7 @@ interface Qualification {
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [ CommonModule, FormsModule, AdminOverviewComponent, SheqIgComponent],
+  imports: [ CommonModule, FormsModule, AdminOverviewComponent, UserManagementAComponent, CourseManagementComponent],
   templateUrl: './admin-dashboard.component.html',
   styleUrl: './admin-dashboard.component.scss'
 })
@@ -35,7 +37,7 @@ export class AdminDashboardComponent {
   calendarDates: (Date | null)[] = [];
   schedules: any[] = [];
   private reminderCheckInterval: any;
-  activeTab: string = 'training';
+  activeTab: string = 'overview'; // Changed from 'training' to 'overview'
   newSchedule: any = {
     title: '',
     date: '',

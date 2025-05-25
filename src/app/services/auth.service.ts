@@ -1,121 +1,161 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of, throwError } from 'rxjs';
-import { User, RoleName, UserStatus } from '../models/user.model';
-import { v4 as uuidv4 } from 'uuid';
+import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, authState, User, onAuthStateChanged } from '@angular/fire/auth';
+import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
+import { BehaviorSubject, Observable, from } from 'rxjs';
 
-interface LoginCredentials {
+export interface UserData {
+  uid: string;
+  fullName: string;
   email: string;
-  password: string;
-}
- 
-interface AuthState {
-  user: User | null;
-  token: string | null;
+  phone: string;
+  department: string;
+  province: string;
+  role: string;
+  profilePhoto?: string;
+  status: string;
+  createdAt: Date;
+  lastLogin?: Date;
+  trainingCompleted: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly STORAGE_KEY = 'authState';
-  private readonly MOCK_USERS: User[] = [
-    {
-      id: '1',
-      firstName: 'Admin',
-      lastName: 'User',
-      email: 'admin@fundo-isms.com',
-      role: RoleName.ADMIN,
-      status: UserStatus.ACTIVE,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    },
-    {
-      id: '2',
-      firstName: 'Manager',
-      lastName: 'User',
-      email: 'manager@fundo-isms.com',
-      role: RoleName.MANAGER,
-      status: UserStatus.ACTIVE,
-      createdAt: new Date(),
-      updatedAt: new Date()
-    }
-  ];
+  private currentUserSubject = new BehaviorSubject<UserData | null>(null);
+  public currentUser$ = this.currentUserSubject.asObservable();
 
-  private authStateSubject: BehaviorSubject<AuthState>;
-
-  constructor() {
-    const savedState = localStorage.getItem(this.STORAGE_KEY);
-    const initialState: AuthState = savedState 
-      ? JSON.parse(savedState)
-      : { user: null, token: null };
-    
-    this.authStateSubject = new BehaviorSubject<AuthState>(initialState);
+  constructor(
+    private auth: Auth,
+    private firestore: Firestore
+  ) {
+    // Use onAuthStateChanged instead of authState for better reliability
+    onAuthStateChanged(this.auth, async (user) => {
+      if (user) {
+        try {
+          const userData = await this.fetchUserData(user.uid);
+          this.currentUserSubject.next(userData);
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          this.currentUserSubject.next(null);
+        }
+      } else {
+        this.currentUserSubject.next(null);
+      }
+    });
   }
 
-  get currentUser(): User | null {
-    return this.authStateSubject.value.user;
+  get currentUser(): UserData | null {
+    return this.currentUserSubject.value;
   }
 
-  get isAuthenticated(): boolean {
-    return !!this.authStateSubject.value.token;
-  }
+  async createUserAccount(userData: Omit<UserData, 'uid'>, password: string): Promise<void> {
+    try {
+      console.log('Starting user creation process...');
+      
+      // Create Firebase Auth user
+      const credential = await createUserWithEmailAndPassword(
+        this.auth, 
+        userData.email, 
+        password
+      );
+      console.log('Firebase Auth user created successfully');
 
-  get authState$(): Observable<AuthState> {
-    return this.authStateSubject.asObservable();
-  }
+      if (credential.user) {
+        const userDocData: UserData = {
+          ...userData,
+          uid: credential.user.uid,
+          createdAt: new Date(),
+          status: 'Active',
+          trainingCompleted: false
+        };
 
-  login(credentials: LoginCredentials): Observable<User> {
-    // For development, accept any email that matches our mock users
-    const user = this.MOCK_USERS.find(u => u.email === credentials.email);
-
-    if (!user) {
-      return throwError(() => new Error('Invalid credentials'));
-    }
-
-    // Generate mock JWT token
-    const token = `mock-jwt-${uuidv4()}`;
-    
-    // Update auth state
-    const newState: AuthState = { user, token };
-    this.authStateSubject.next(newState);
-    
-    // Save to localStorage
-    localStorage.setItem(this.STORAGE_KEY, JSON.stringify(newState));
-
-    return of(user);
-  }
-
-  logout(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
-    this.authStateSubject.next({ user: null, token: null });
-  }
-
-  // Development helper to check permissions
-  hasPermission(resource: string, action: string): boolean {
-    const user = this.currentUser;
-    if (!user) return false;
-
-    // For development, use simplified permission check
-    switch (user.role) {
-      case RoleName.ADMIN:
-        return true; // Admin has all permissions
-      case RoleName.MANAGER:
-        return ['users', 'inventory', 'orders'].includes(resource);
-      case RoleName.WAREHOUSE_STAFF:
-        return resource === 'inventory';
-      case RoleName.SALES_REP:
-        return resource === 'orders';
-      case RoleName.SUPPLIER:
-        return resource === 'inventory' && action === 'read';
-      case RoleName.VIEWER:
-        return action === 'read';
-      default:
-        return false;
+        console.log('Attempting to save user data to Firestore...');
+        await this.saveUserData(credential.user.uid, userDocData);
+        console.log('User data saved successfully to Firestore');
+        
+        this.currentUserSubject.next(userDocData);
+      }
+    } catch (error) {
+      console.error('Detailed error creating user account:', error);
+      
+      // Check if it's a Firestore write error
+      if (error instanceof Error && error.message.includes('firestore')) {
+        throw new Error('Failed to save user data. Please check your internet connection and try again.');
+      }
+      
+      throw error;
     }
   }
 
-  // Helper to check if user has a specific role
-  hasRole(role: RoleName): boolean {
-    return this.currentUser?.role === role;
+  async signIn(email: string, password: string): Promise<void> {
+    try {
+      console.log('Starting sign in process...');
+      const credential = await signInWithEmailAndPassword(this.auth, email, password);
+      console.log('Firebase Auth sign in successful');
+      
+      if (credential.user) {
+        console.log('Updating last login...');
+        await this.updateLastLogin(credential.user.uid);
+        console.log('Last login updated successfully');
+        
+        const userData = await this.fetchUserData(credential.user.uid);
+        this.currentUserSubject.next(userData);
+      }
+    } catch (error) {
+      console.error('Detailed sign in error:', error);
+      throw error;
+    }
+  }
+
+  async signOut(): Promise<void> {
+    try {
+      await signOut(this.auth);
+      this.currentUserSubject.next(null);
+    } catch (error) {
+      console.error('Sign out error:', error);
+      throw error;
+    }
+  }
+
+  private async saveUserData(uid: string, userData: UserData): Promise<void> {
+    try {
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      console.log('Firestore document reference created:', userDocRef.path);
+      
+      await setDoc(userDocRef, userData);
+      console.log('setDoc completed successfully');
+    } catch (error) {
+      console.error('saveUserData error:', error);
+      throw error;
+    }
+  }
+
+  private async fetchUserData(uid: string): Promise<UserData> {
+    const userDocRef = doc(this.firestore, `users/${uid}`);
+    const userDoc = await getDoc(userDocRef);
+    
+    if (userDoc.exists()) {
+      return userDoc.data() as UserData;
+    } else {
+      throw new Error('User data not found');
+    }
+  }
+
+  private async updateLastLogin(uid: string): Promise<void> {
+    const userDocRef = doc(this.firestore, `users/${uid}`);
+    await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });
+  }
+
+  getCurrentUser(): UserData | null {
+    return this.currentUserSubject.value;
+  }
+
+  isAuthenticated(): boolean {
+    return !!this.currentUserSubject.value;
+  }
+
+  getFirebaseUser(): Observable<User | null> {
+    return authState(this.auth);
   }
 }

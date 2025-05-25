@@ -48,29 +48,29 @@
            <div class="col-span-3 overflow-auto h-screen">
              <div class="bg-white rounded-lg shadow-md">
                <!-- Tabs Navigation -->
-                 <div class="sticky top-0 bg-white">
-          <nav class="flex space-x-2 p-4 pb-0 border-b-2 border-gray-00 ">
+                 <div class="sticky top-0 bg-white z-50 border-b-2 border-gray-100">
+          <nav class="flex space-x-2 p-4 pb-0">
             <button 
-              (click)="activeTab = 'training'"
+              (click)="activeTab = 'overview'"
               class="relative px-4 py-2 overflow-hidden transition-all duration-300"
-              [class.text-white]="activeTab === 'training'"
+              [class.text-white]="activeTab === 'overview'"
             >
               <div class="text-black">Admin Overview </div>
               <div 
                 class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-300"
-                [style.width]="activeTab === 'training' ? '100%' : '0'"
+                [style.width]="activeTab === 'overview' ? '100%' : '0'"
               ></div>
             </button>
             
             <button 
-              (click)="activeTab = 'qualifications'"
-              class="relative px-4 py-2 overflow-hidden transition-all duration-00"
-              [class.text-white]="activeTab === 'qualifications'"
+              (click)="activeTab = 'course-management'"
+              class="relative px-4 py-2 overflow-hidden transition-all duration-300"
+              [class.text-white]="activeTab === 'course-management'"
                >
               <div class="text-black">Course Management</div>
               <div 
                 class="absolute bottom-0 left-0 h-1 bg-green-500 transition-all duration-300"
-                [style.width]="activeTab === 'qualifications' ? '100%' : '0'"
+                [style.width]="activeTab === 'course-management' ? '100%' : '0'"
               ></div>
             </button>
   
@@ -89,22 +89,22 @@
                  </div>
   
                   <!-- Tab Content -->
-                    <div class="p-6">
+                    <div class="relative z-10">
                       <!-- Training Tab -->
-                        <div *ngIf="activeTab === 'training'">
+                        <div *ngIf="activeTab === 'overview'" class="p-6">
                         <app-admin-overview></app-admin-overview>
                         </div>
   
   
   
     <!-- Qualifications Tab -->
-      <div *ngIf="activeTab === 'qualifications'" class="space-y-4">
-            
+      <div *ngIf="activeTab === 'course-management'" class="p-6">
+       <app-course-management></app-course-management>     
       </div>
   
         <!-- Schedule Tab -->
-          <div *ngIf="activeTab === 'schedule'" class="space-y-6 ">
-          <app-sheq-ig></app-sheq-ig>
+          <div *ngIf="activeTab === 'schedule'" class="p-6">
+          <app-user-management-a></app-user-management-a>
           </div>
   
           </div>
@@ -114,4 +114,4 @@
   </div>
 </div>
 
-  
+

@@ -4,7 +4,6 @@ import { Component, Input } from '@angular/core';
   selector: 'app-user-card',
   standalone: true,
   imports: [
-    UserCardComponent,
   ],
   templateUrl: './user-card.component.html',
   styleUrl: './user-card.component.scss'

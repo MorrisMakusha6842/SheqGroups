@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
+import { AuthService, UserData } from '../../services/auth.service';
 
 interface User {
   name: string;
@@ -110,13 +111,15 @@ interface CourseDetails {
 }
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-course-dashboard',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
   templateUrl: './course-dashboard.component.html',
-  styleUrl: './course-dashboard.component.scss'
+  styleUrls: ['./course-dashboard.component.scss']
 })
 export class CourseDashboardComponent implements OnInit, OnDestroy {
+  currentUser: UserData | null = null;
+  loading = true;
   user: User | null = {
     name: '',
     email: '',
@@ -665,7 +668,10 @@ exploreCategoryDetails(categoryId: number): void {
   currentAchievementsIndex = 0;
   visibleAchievementsCount = 4;
 
-  constructor(private router: Router) {
+  constructor(
+    private authService: AuthService,
+    private router: Router
+  ) {
     // Get current route
     this.currentRoute = this.router.url.split('/')[1] || 'dashboard';
     
@@ -697,6 +703,12 @@ exploreCategoryDetails(categoryId: number): void {
     
     // Start the slider autoplay
     this.startSliderAutoplay();
+
+    // Subscribe to current user
+    this.authService.currentUser$.subscribe(user => {
+      this.currentUser = user;
+      this.loading = false;
+    });
   }
   
   ngOnDestroy(): void {
@@ -876,5 +888,17 @@ exploreCategoryDetails(categoryId: number): void {
   getCartItemsCount(): number {
     return this.cartItems.reduce((acc, item) => acc + item.quantity, 0);
   }
-}
 
+  async signOut(): Promise<void> {
+    try {
+      await this.authService.signOut();
+      this.router.navigate(['/log-in']);
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  }
+
+  navigateToAnalytics(): void {
+    this.router.navigate(['/analytics']);
+  }
+}

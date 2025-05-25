@@ -1,70 +1,80 @@
-import { Component } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, ViewChild } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { AuthService } from '../../services/auth.service';
 
 @Component({
   selector: 'app-log-in',
-  standalone: true,
-  imports: [CommonModule, FormsModule, FormsModule],
+  imports: [CommonModule, FormsModule],
   templateUrl: './log-in.component.html',
-  styleUrls: ['./log-in.component.scss']
+  styleUrl: './log-in.component.scss'
 })
 export class LogInComponent {
-  currentStep: number = 1;
+  @ViewChild('loginForm') loginForm: NgForm;
+  submitted = false;
+  loading = false;
+  loginError: string = '';
+  
   user = {
-    profilePhoto: '',
-    fullName: '',
     email: '',
-    phone: '',
-    department: '',
-    designation: '',
-    employmentType: 'Full-Time',
-    role: 'Staff',
-    location: '',
     password: ''
   };
 
-  // Dummy credentials for testing
-  dummyCredentials = {
-    email: 'user@greenclean.com',
-    password: 'SecurePass123!'
-  };
+  constructor(
+    private router: Router,
+    private authService: AuthService
+  ) {}
 
-  departments = ['Sanitation', 'Recycling', 'Hazardous Waste', 'Management'];
-  employmentTypes = ['Full-Time', 'Part-Time', 'Contractor'];
-  roles = ['Staff', 'Supervisor', 'Manager'];
-  locations = ['Main Facility', 'West District', 'East District', 'Remote'];
-
-  nextStep() {
-    if (this.currentStep < 2) this.currentStep++;
-  }
-
-  previousStep() {
-    if (this.currentStep > 1) this.currentStep--;
-  }
-
-  handleFileInput(event: Event) {
-    const input = event.target as HTMLInputElement;
-    if (input.files?.length) {
-      const file = input.files[0];
-      const reader = new FileReader();
-      reader.onload = () => this.user.profilePhoto = reader.result as string;
-      reader.readAsDataURL(file);
-    }
-  }
-
-  onSubmit(form: NgForm) {
+  async onSubmit(form: NgForm) {
+    this.submitted = true;
+    this.loginError = '';
+    
     if (form.valid) {
-      // Add your authentication logic here
-      if (this.user.email === this.dummyCredentials.email && 
-          this.user.password === this.dummyCredentials.password) {
-        this.router.navigate(['/dashboard']);
+      this.loading = true;
+      
+      try {
+        const { email, password } = this.user;
+        
+        if (!email || !password) {
+          this.loginError = 'Please enter your email and password.';
+          return;
+        }
+
+        await this.authService.signIn(email, password);
+        this.navigateToDashboard();
+        
+      } catch (error: any) {
+        this.loginError = this.getErrorMessage(error);
+        console.error('Login error:', error);
+      } finally {
+        this.loading = false;
       }
     }
   }
 
-  constructor(private router: Router) {}
+  private getErrorMessage(error: any): string {
+    switch (error.code) {
+      case 'auth/user-not-found':
+      case 'auth/wrong-password':
+      case 'auth/invalid-credential':
+        return 'Invalid email or password.';
+      case 'auth/too-many-requests':
+        return 'Too many failed attempts. Please try again later.';
+      case 'auth/user-disabled':
+        return 'This account has been disabled.';
+      default:
+        return 'An error occurred during login. Please try again.';
+    }
+  }
 
-  
+  private navigateToDashboard() {
+    this.router.navigate(['/course-dashboard']);
+  }
+
+  navigateTo(route: string): void {
+    if (route === 'CreateAccount') {
+      this.router.navigateByUrl('/create-user-account');
+    }
+  }
 }
