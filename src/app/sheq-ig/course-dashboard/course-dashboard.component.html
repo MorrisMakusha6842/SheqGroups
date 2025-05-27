@@ -1,4 +1,19 @@
 <div class="min-h-screen bg-gray-50">
+  <!-- Add this debug panel at the top of your template for testing -->
+  <div class="fixed top-4 right-4 bg-yellow-100 border border-yellow-400 p-4 rounded shadow-lg z-50" *ngIf="true">
+    <h4 class="font-bold text-sm mb-2">🐛 Debug Panel</h4>
+    <div class="text-xs space-y-1">
+      <div>Auth Status: {{ authService.isAuthenticated() ? '✅ Authenticated' : '❌ Not Authenticated' }}</div>
+      <div>Current User: {{ currentUser?.email || 'None' }}</div>
+      <div>Component User: {{ user?.email || 'None' }}</div>
+      <button 
+        (click)="checkAuthStatus()"
+        class="bg-blue-500 text-white px-2 py-1 rounded text-xs mt-2">
+        Check Auth Status
+      </button>
+    </div>
+  </div>
+
   <!-- Header -->
   <header class="bg-white shadow-sm border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

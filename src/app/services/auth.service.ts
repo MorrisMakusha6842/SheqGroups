@@ -1,13 +1,13 @@
 import { Injectable } from '@angular/core';
 import { Auth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, authState, User, onAuthStateChanged } from '@angular/fire/auth';
-import { Firestore, doc, setDoc, getDoc } from '@angular/fire/firestore';
-import { BehaviorSubject, Observable, from } from 'rxjs';
+import { Firestore, doc, setDoc, getDoc, updateDoc } from '@angular/fire/firestore';
+import { BehaviorSubject, Observable } from 'rxjs';
 
 export interface UserData {
   uid: string;
   fullName: string;
   email: string;
-  phone: string;
+  phone: string | number;
   department: string;
   province: string;
   role: string;
@@ -15,7 +15,7 @@ export interface UserData {
   status: string;
   createdAt: Date;
   lastLogin?: Date;
-  trainingCompleted: boolean;
+  trainingCompleted?: boolean;
 }
 
 @Injectable({
@@ -29,15 +29,23 @@ export class AuthService {
     private auth: Auth,
     private firestore: Firestore
   ) {
-    // Use onAuthStateChanged instead of authState for better reliability
+    console.log('AuthService initialized with Firebase Auth and Firestore');
+    
+    // Listen to auth state changes
     onAuthStateChanged(this.auth, async (user) => {
+      console.log('Auth state changed:', user ? user.uid : 'No user');
       if (user) {
         try {
+          // Fetch user data from Firestore
           const userData = await this.fetchUserData(user.uid);
           this.currentUserSubject.next(userData);
+          
+          // Update last login in background
+          this.updateLastLoginBackground(user.uid);
         } catch (error) {
           console.error('Error fetching user data:', error);
-          this.currentUserSubject.next(null);
+          // If user doesn't exist in Firestore, sign them out
+          await this.signOut();
         }
       } else {
         this.currentUserSubject.next(null);
@@ -45,75 +53,94 @@ export class AuthService {
     });
   }
 
-  get currentUser(): UserData | null {
-    return this.currentUserSubject.value;
+  private async fetchUserData(uid: string): Promise<UserData> {
+    try {
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        console.log('User data fetched from Firestore:', data);
+        
+        return {
+          uid: data['uid'] || uid,
+          fullName: data['fullName'],
+          email: data['email'],
+          phone: data['phone'],
+          department: data['department'],
+          province: data['province'],
+          role: data['role'],
+          profilePhoto: data['profilePhoto'] || '',
+          status: data['status'],
+          createdAt: data['createdAt'] ? new Date(data['createdAt'].seconds * 1000) : new Date(),
+          lastLogin: data['lastLogin'] ? new Date(data['lastLogin'].seconds * 1000) : undefined,
+          trainingCompleted: data['trainingCompleted'] || false
+        } as UserData;
+      } else {
+        throw new Error('User data not found in Firestore');
+      }
+    } catch (error) {
+      console.error('Error fetching user data from Firestore:', error);
+      throw error;
+    }
   }
 
-  async createUserAccount(userData: Omit<UserData, 'uid'>, password: string): Promise<void> {
+  async createUserAccount(userData: Omit<UserData, 'uid'>, password: string): Promise<{ success: boolean; user?: any }> {
     try {
-      console.log('Starting user creation process...');
+      console.log('Creating user account...');
       
-      // Create Firebase Auth user
+      // Validate inputs
+      if (!userData.email || !password) {
+        throw new Error('Email and password are required');
+      }
+      
+      console.log('Creating Firebase Auth user...');
       const credential = await createUserWithEmailAndPassword(
         this.auth, 
         userData.email, 
         password
       );
-      console.log('Firebase Auth user created successfully');
-
+      
+      console.log('✅ Firebase Auth user created:', credential.user.uid);
+      
       if (credential.user) {
         const userDocData: UserData = {
           ...userData,
           uid: credential.user.uid,
           createdAt: new Date(),
-          status: 'Active',
+          status: 'active',
           trainingCompleted: false
         };
 
-        console.log('Attempting to save user data to Firestore...');
+        // Save to Firestore
         await this.saveUserData(credential.user.uid, userDocData);
-        console.log('User data saved successfully to Firestore');
         
+        // Update current user subject
         this.currentUserSubject.next(userDocData);
-      }
-    } catch (error) {
-      console.error('Detailed error creating user account:', error);
-      
-      // Check if it's a Firestore write error
-      if (error instanceof Error && error.message.includes('firestore')) {
-        throw new Error('Failed to save user data. Please check your internet connection and try again.');
-      }
-      
-      throw error;
-    }
-  }
-
-  async signIn(email: string, password: string): Promise<void> {
-    try {
-      console.log('Starting sign in process...');
-      const credential = await signInWithEmailAndPassword(this.auth, email, password);
-      console.log('Firebase Auth sign in successful');
-      
-      if (credential.user) {
-        console.log('Updating last login...');
-        await this.updateLastLogin(credential.user.uid);
-        console.log('Last login updated successfully');
         
-        const userData = await this.fetchUserData(credential.user.uid);
-        this.currentUserSubject.next(userData);
+        console.log('✅ User account created successfully');
+        return { success: true, user: credential.user };
       }
-    } catch (error) {
-      console.error('Detailed sign in error:', error);
-      throw error;
-    }
-  }
-
-  async signOut(): Promise<void> {
-    try {
-      await signOut(this.auth);
-      this.currentUserSubject.next(null);
-    } catch (error) {
-      console.error('Sign out error:', error);
+      
+      throw new Error('No user returned from Firebase Auth');
+      
+    } catch (error: any) {
+      console.error('❌ Error creating user account:', error);
+      
+      // Handle specific auth errors
+      if (error.code === 'auth/email-already-in-use') {
+        throw new Error('This email address is already registered.');
+      }
+      if (error.code === 'auth/weak-password') {
+        throw new Error('Password should be at least 6 characters.');
+      }
+      if (error.code === 'auth/invalid-email') {
+        throw new Error('Please enter a valid email address.');
+      }
+      if (error.code === 'auth/network-request-failed') {
+        throw new Error('Network error. Please check your internet connection and try again.');
+      }
+      
       throw error;
     }
   }
@@ -121,30 +148,93 @@ export class AuthService {
   private async saveUserData(uid: string, userData: UserData): Promise<void> {
     try {
       const userDocRef = doc(this.firestore, `users/${uid}`);
-      console.log('Firestore document reference created:', userDocRef.path);
+      console.log('Saving user data to Firestore...');
       
-      await setDoc(userDocRef, userData);
-      console.log('setDoc completed successfully');
-    } catch (error) {
-      console.error('saveUserData error:', error);
+      const firestoreData = {
+        uid: userData.uid,
+        fullName: userData.fullName,
+        email: userData.email,
+        phone: userData.phone,
+        department: userData.department,
+        province: userData.province,
+        role: userData.role,
+        profilePhoto: userData.profilePhoto || '',
+        status: userData.status,
+        trainingCompleted: userData.trainingCompleted || false,
+        createdAt: userData.createdAt,
+        lastLogin: userData.lastLogin || null,
+        updatedAt: new Date()
+      };
+      
+      await setDoc(userDocRef, firestoreData);
+      console.log('✅ User data saved to Firestore successfully');
+    } catch (error: any) {
+      console.error('❌ Error saving user data to Firestore:', error);
       throw error;
     }
   }
 
-  private async fetchUserData(uid: string): Promise<UserData> {
-    const userDocRef = doc(this.firestore, `users/${uid}`);
-    const userDoc = await getDoc(userDocRef);
-    
-    if (userDoc.exists()) {
-      return userDoc.data() as UserData;
-    } else {
-      throw new Error('User data not found');
+  async signIn(email: string, password: string): Promise<UserData> {
+    try {
+      console.log('Starting sign in process for:', email);
+      const credential = await signInWithEmailAndPassword(this.auth, email, password);
+      console.log('✅ Firebase Auth sign in successful');
+      
+      if (credential.user) {
+        // Fetch user data from Firestore
+        const userData = await this.fetchUserData(credential.user.uid);
+        
+        // Update last login
+        userData.lastLogin = new Date();
+        
+        // Update current user subject
+        this.currentUserSubject.next(userData);
+        
+        // Update last login in Firestore
+        await this.updateLastLogin(credential.user.uid);
+        
+        console.log('✅ Sign in completed successfully');
+        return userData;
+      } else {
+        throw new Error('No user returned from Firebase Auth');
+      }
+    } catch (error) {
+      console.error('❌ Sign in error:', error);
+      throw error;
     }
   }
 
   private async updateLastLogin(uid: string): Promise<void> {
-    const userDocRef = doc(this.firestore, `users/${uid}`);
-    await setDoc(userDocRef, { lastLogin: new Date() }, { merge: true });
+    try {
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      await updateDoc(userDocRef, { 
+        lastLogin: new Date()
+      });
+      console.log('✅ Last login updated in Firestore');
+    } catch (error) {
+      console.warn('⚠️ Failed to update last login:', error);
+    }
+  }
+
+  private async updateLastLoginBackground(uid: string): Promise<void> {
+    // Background update without blocking
+    this.updateLastLogin(uid).catch(error => {
+      console.warn('Background last login update failed:', error);
+    });
+  }
+
+  async signOut(): Promise<void> {
+    try {
+      console.log('Signing out...');
+      await signOut(this.auth);
+      this.currentUserSubject.next(null);
+      console.log('✅ Sign out successful');
+    } catch (error) {
+      console.error('❌ Sign out error:', error);
+      // Clear local state even if Firebase signOut fails
+      this.currentUserSubject.next(null);
+      throw error;
+    }
   }
 
   getCurrentUser(): UserData | null {
@@ -152,10 +242,59 @@ export class AuthService {
   }
 
   isAuthenticated(): boolean {
-    return !!this.currentUserSubject.value;
+    const hasUser = !!this.currentUserSubject.value;
+    const hasFirebaseUser = !!this.auth.currentUser;
+    
+    console.log('Auth check:', { hasUser, hasFirebaseUser });
+    return hasUser && hasFirebaseUser;
   }
 
   getFirebaseUser(): Observable<User | null> {
     return authState(this.auth);
+  }
+
+  // Get user by email (for admin purposes)
+  async getUserByEmail(email: string): Promise<UserData | null> {
+    try {
+      // Note: This is a simplified approach. In production, you might want to use Cloud Functions
+      // or implement proper search functionality
+      const userData = this.currentUserSubject.value;
+      if (userData && userData.email === email) {
+        return userData;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error getting user by email:', error);
+      return null;
+    }
+  }
+
+  // Check if current user is admin
+  isAdmin(): boolean {
+    const currentUser = this.getCurrentUser();
+    return currentUser?.role === 'admin';
+  }
+
+  // Update user data
+  async updateUserData(uid: string, updates: Partial<UserData>): Promise<void> {
+    try {
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      await updateDoc(userDocRef, {
+        ...updates,
+        updatedAt: new Date()
+      });
+      
+      // Update local state if it's the current user
+      const currentUser = this.getCurrentUser();
+      if (currentUser && currentUser.uid === uid) {
+        const updatedUser = { ...currentUser, ...updates };
+        this.currentUserSubject.next(updatedUser);
+      }
+      
+      console.log('✅ User data updated successfully');
+    } catch (error) {
+      console.error('❌ Error updating user data:', error);
+      throw error;
+    }
   }
 }

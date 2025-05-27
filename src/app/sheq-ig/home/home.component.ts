@@ -111,13 +111,13 @@ interface CourseDetails {
 }
 
 @Component({
-  selector: 'app-course-dashboard',
+  selector: 'app-home',
   standalone: true,
   imports: [CommonModule, RouterModule, FormsModule],
-  templateUrl: './course-dashboard.component.html',
-  styleUrls: ['./course-dashboard.component.scss']
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.scss']
 })
-export class CourseDashboardComponent implements OnInit, OnDestroy {
+export class HomeComponent implements OnInit, OnDestroy {
   currentUser: UserData | null = null;
   loading = true;
   user: User | null = {
@@ -669,24 +669,12 @@ exploreCategoryDetails(categoryId: number): void {
   visibleAchievementsCount = 4;
 
   constructor(
-    public authService: AuthService, // Changed from private to public
+    private authService: AuthService,
     private router: Router
   ) {
     // Get current route
-    this.currentRoute = this.router.url.split('/')[1] || 'dashboard';
+    this.currentRoute = this.router.url.split('/')[1] || 'home';
     
-    // Check if user is admin (implement your own logic)
-    const userString = localStorage.getItem('currentUser');
-    if (userString) {
-      const user = JSON.parse(userString);
-      this.isAdmin = user.role === 'admin'; // adjust according to your user role structure
-    }
-
-    // Track current route for active state
-    this.router.events.subscribe(() => {
-      this.currentRoute = this.router.url.split('/')[1] || 'dashboard';
-    });
-
     // Initialize user initials if no profile image
     if (this.user && !this.user.profileImage) {
       this.user.initials = this.getInitials(this.user.name);
@@ -694,59 +682,42 @@ exploreCategoryDetails(categoryId: number): void {
   }
 
   ngOnInit(): void {
-    // Enhanced debugging for authentication status
-    console.log('=== COURSE DASHBOARD AUTHENTICATION CHECK ===');
-    
-    // Check localStorage
-    const userString = localStorage.getItem('currentUser');
-    console.log('LocalStorage user data:', userString ? JSON.parse(userString) : 'No data');
-    
-    // Check AuthService state
-    console.log('AuthService isAuthenticated:', this.authService.isAuthenticated());
-    console.log('AuthService currentUser:', this.authService.getCurrentUser());
-    
-    // Subscribe to Firebase Auth state
-    this.authService.getFirebaseUser().subscribe(firebaseUser => {
-      console.log('Firebase Auth User:', firebaseUser ? {
-        uid: firebaseUser.uid,
-        email: firebaseUser.email,
-        emailVerified: firebaseUser.emailVerified
-      } : 'No Firebase user');
-    });
-
-    if (userString) {
-      this.user = JSON.parse(userString);
-      console.log('User loaded into component:', this.user);
-    } else {
-      console.warn('No user data found, redirecting to login');
-      this.router.navigate(['/log-in']);
+    // Check authentication state first
+    if (!this.authService.isAuthenticated()) {
+      console.log('User not authenticated, redirecting to login');
+      this.router.navigate(['/log-in'], { replaceUrl: true });
       return;
     }
-    
-    // Start the slider autoplay
-    this.startSliderAutoplay();
 
-    // Subscribe to current user changes
+    // Subscribe to current user from Firestore
     this.authService.currentUser$.subscribe(user => {
-      console.log('AuthService user subscription update:', user);
-      this.currentUser = user;
-      this.loading = false;
-      
       if (user) {
-        // Update component user data
+        this.currentUser = user;
+        
+        // Map Firestore user data to local user interface
         this.user = {
           name: user.fullName,
           email: user.email,
           profileImage: user.profilePhoto || '',
-          notifications: 0,
-          wishlist: 0,
+          notifications: 0, // This would come from a separate notifications collection
+          wishlist: 0, // This would come from a separate wishlist collection
           initials: this.getInitials(user.fullName)
         };
-        console.log('Component user updated:', this.user);
+        
+        // Check if user is admin
+        this.isAdmin = user.role === 'admin';
+        
+        this.loading = false;
+        console.log('User data loaded from Firestore:', user);
+      } else {
+        // User signed out or auth state changed
+        console.log('No user data, redirecting to login');
+        this.router.navigate(['/log-in'], { replaceUrl: true });
       }
     });
     
-    console.log('=== END AUTHENTICATION CHECK ===');
+    // Start the slider autoplay
+    this.startSliderAutoplay();
   }
   
   ngOnDestroy(): void {
@@ -788,8 +759,14 @@ exploreCategoryDetails(categoryId: number): void {
   }
 
   logout(): void {
-    localStorage.removeItem('currentUser');
-    this.router.navigate(['/login']);
+    // Remove localStorage dependency
+    this.authService.signOut().then(() => {
+      this.router.navigate(['/log-in']);
+    }).catch(error => {
+      console.error('Logout error:', error);
+      // Force navigation even if logout fails
+      this.router.navigate(['/log-in']);
+    });
   }
 
   search(): void {
@@ -933,21 +910,12 @@ exploreCategoryDetails(categoryId: number): void {
       this.router.navigate(['/log-in']);
     } catch (error) {
       console.error('Error signing out:', error);
+      // Force navigation even if signOut fails
+      this.router.navigate(['/log-in']);
     }
   }
 
   navigateToAnalytics(): void {
     this.router.navigate(['/analytics']);
-  }
-
-  // Add method to manually check auth status
-  checkAuthStatus(): void {
-    console.log('=== MANUAL AUTH STATUS CHECK ===');
-    console.log('AuthService isAuthenticated:', this.authService.isAuthenticated());
-    console.log('AuthService currentUser:', this.authService.getCurrentUser());
-    console.log('Component currentUser:', this.currentUser);
-    console.log('Component user:', this.user);
-    console.log('LocalStorage currentUser:', localStorage.getItem('currentUser'));
-    console.log('=== END MANUAL CHECK ===');
   }
 }

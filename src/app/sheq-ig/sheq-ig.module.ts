@@ -1,0 +1,13 @@
+// ...existing imports...
+import { NgModule } from '@angular/core';
+import { FormsModule } from '@angular/forms';
+
+@NgModule({
+  // ...existing code...
+  imports: [
+    // ...existing imports...
+    FormsModule
+  ],
+  // ...existing code...
+})
+export class SheqIgModule { }
