@@ -1,39 +1,82 @@
 import { Injectable } from '@angular/core';
 import { Firestore, collection, doc, getDoc, getDocs, setDoc, updateDoc, query, where, orderBy, limit, addDoc, writeBatch } from '@angular/fire/firestore';
 import { Observable, from } from 'rxjs';
-import { map } from 'rxjs/operators';
+import { map, catchError } from 'rxjs/operators';
 
 @Injectable({
   providedIn: 'root'
 })
 export class UserService {
 
-  constructor(private firestore: Firestore) { }
+  constructor(private firestore: Firestore) {
+    console.log('UserService initialized with Firestore:', !!this.firestore);
+  }
 
   getUser(uid: string): Observable<any> {
-    return from(this.fetchUser(uid));
+    console.log('Getting user data for UID:', uid);
+    return from(this.fetchUser(uid)).pipe(
+      catchError(error => {
+        console.error('Error getting user:', error);
+        throw error;
+      })
+    );
   }
 
   private async fetchUser(uid: string): Promise<any> {
-    const userDocRef = doc(this.firestore, `users/${uid}`);
-    const userDoc = await getDoc(userDocRef);
-    return userDoc.exists() ? userDoc.data() : null;
+    try {
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      const userDoc = await getDoc(userDocRef);
+      
+      if (userDoc.exists()) {
+        const data = userDoc.data();
+        console.log('User data fetched successfully for:', uid);
+        return { id: userDoc.id, ...data };
+      } else {
+        console.log('No user document found for:', uid);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error fetching user document:', error);
+      throw error;
+    }
   }
 
   async updateUser(uid: string, data: any): Promise<void> {
-    const userDocRef = doc(this.firestore, `users/${uid}`);
-    return updateDoc(userDocRef, data);
+    try {
+      console.log('Updating user:', uid, 'with data:', data);
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      await updateDoc(userDocRef, {
+        ...data,
+        updatedAt: new Date().toISOString()
+      });
+      console.log('User updated successfully');
+    } catch (error) {
+      console.error('Error updating user:', error);
+      throw error;
+    }
   }
 
-  // Get all users for the user directory table
   getAllUsers(): Observable<any[]> {
-    return from(this.fetchAllUsers());
+    console.log('Fetching all users');
+    return from(this.fetchAllUsers()).pipe(
+      catchError(error => {
+        console.error('Error getting all users:', error);
+        throw error;
+      })
+    );
   }
 
   private async fetchAllUsers(): Promise<any[]> {
-    const usersCollection = collection(this.firestore, 'users');
-    const usersSnapshot = await getDocs(usersCollection);
-    return usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    try {
+      const usersCollection = collection(this.firestore, 'users');
+      const usersSnapshot = await getDocs(usersCollection);
+      const users = usersSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      console.log('Fetched', users.length, 'users');
+      return users;
+    } catch (error) {
+      console.error('Error fetching all users:', error);
+      throw error;
+    }
   }
 
   // Get user registration requests (pending approval)
@@ -68,8 +111,19 @@ export class UserService {
 
   // Create new user with specific UID (for auth integration)
   async createUserWithUid(uid: string, userData: any): Promise<void> {
-    const userDocRef = doc(this.firestore, `users/${uid}`);
-    return setDoc(userDocRef, userData);
+    try {
+      console.log('Creating user document with UID:', uid);
+      const userDocRef = doc(this.firestore, `users/${uid}`);
+      await setDoc(userDocRef, {
+        ...userData,
+        createdAt: userData.createdAt?.toISOString() || new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      });
+      console.log('User document created successfully');
+    } catch (error) {
+      console.error('Error creating user document:', error);
+      throw error;
+    }
   }
 
   // Approve user registration

@@ -14,7 +14,6 @@ import { NotificationsComponent } from './sheq-ig/notifications/notifications.co
 import { FundoIsmsComponent } from './fundo-isms/fundo-isms.component';
 import { LandingPageComponent } from './fundo-isms/landing-page/landing-page.component';
 import { DashboardComponent } from './fundo-isms/dashboard/dashboard.component';
-import { AnalyticsComponent } from './fundo-isms/analytics/analytics/analytics.component';
 import { InventoryComponent } from './fundo-isms/inventory/inventory.component';
 import { BinCountsComponent } from './fundo-isms/inventory/bin-counts/bin-counts.component';
 import { StockAdjustmentsComponent } from './fundo-isms/inventory/stock-adjustments/stock-adjustments.component';
@@ -26,6 +25,7 @@ import { ScheduleComponent } from './sheq-ig/schedule/schedule.component';
 import { GetStartedComponent } from './sheq-ig/get-started/get-started.component';
 import { CreateUserAccountComponent } from './sheq-ig/create-user-account/create-user-account.component';
 import { LogInComponent } from './sheq-ig/log-in/log-in.component';
+import { HomeComponent } from './sheq-ig/home/home.component';
 
 export const routes: Routes = [
   {
@@ -35,21 +35,15 @@ export const routes: Routes = [
   },
   {
     path: 'log-in',
-    loadComponent: () => import('./sheq-ig/log-in/log-in.component').then(m => m.LogInComponent)
+    component: LogInComponent
   },
   {
     path: 'create-user-account',
-    loadComponent: () => import('./sheq-ig/create-user-account/create-user-account.component').then(m => m.CreateUserAccountComponent)
+    component: CreateUserAccountComponent
   },
   {
-    path: 'course-dashboard',
-    loadComponent: () => import('./sheq-ig/course-dashboard/course-dashboard.component').then(m => m.CourseDashboardComponent),
-    canActivate: [AuthGuard]
-  },
-  {
-    path: 'analytics',
-    loadComponent: () => import('./fundo-isms/analytics/analytics/analytics.component').then(m => m.AnalyticsComponent),
-    canActivate: [AuthGuard]
+    path: 'home',
+    component: HomeComponent
   },
   {
     path: 'course/:id',
@@ -105,7 +99,8 @@ export const routes: Routes = [
   },
   {
     path: 'dashboard',
-    component: DashboardComponent
+    redirectTo: '/course-dashboard',
+    pathMatch: 'full'
   },
   {
     path: 'fundo-isms',

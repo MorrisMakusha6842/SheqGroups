@@ -1,4 +1,4 @@
-import { Component, ViewChild } from '@angular/core';
+import { Component, ViewChild, OnInit } from '@angular/core';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -10,7 +10,7 @@ import { AuthService } from '../../services/auth.service';
   templateUrl: './log-in.component.html',
   styleUrl: './log-in.component.scss'
 })
-export class LogInComponent {
+export class LogInComponent implements OnInit {
   @ViewChild('loginForm') loginForm: NgForm;
   submitted = false;
   loading = false;
@@ -23,8 +23,19 @@ export class LogInComponent {
 
   constructor(
     private router: Router,
-    private authService: AuthService
+    public authService: AuthService
   ) {}
+
+  ngOnInit() {
+    // Only check if user is already authenticated if we have a valid auth state
+    // Remove automatic navigation - let user manually navigate after login
+    this.authService.currentUser$.subscribe(user => {
+      if (user && this.authService.isAuthenticated()) {
+        console.log('User already authenticated but not auto-redirecting');
+        // Optional: Show a message that user is already logged in
+      }
+    });
+  }
 
   async onSubmit(form: NgForm) {
     this.submitted = true;
@@ -38,15 +49,23 @@ export class LogInComponent {
         
         if (!email || !password) {
           this.loginError = 'Please enter your email and password.';
+          this.loading = false;
           return;
         }
 
-        await this.authService.signIn(email, password);
-        this.navigateToDashboard();
+        console.log('Attempting to sign in user:', email);
+        
+        // Sign in and get user data immediately
+        const userData = await this.authService.signIn(email, password);
+        
+        console.log('Login successful, user data:', userData);
+        
+        // Show success message but don't auto-navigate
+        // Let user manually navigate or add a "Continue" button
         
       } catch (error: any) {
-        this.loginError = this.getErrorMessage(error);
         console.error('Login error:', error);
+        this.loginError = this.getErrorMessage(error);
       } finally {
         this.loading = false;
       }
@@ -54,27 +73,39 @@ export class LogInComponent {
   }
 
   private getErrorMessage(error: any): string {
+    console.log('Error code:', error.code);
     switch (error.code) {
       case 'auth/user-not-found':
       case 'auth/wrong-password':
       case 'auth/invalid-credential':
-        return 'Invalid email or password.';
+        return 'Invalid email or password. Please check your credentials and try again.';
       case 'auth/too-many-requests':
-        return 'Too many failed attempts. Please try again later.';
+        return 'Too many failed login attempts. Please try again later.';
       case 'auth/user-disabled':
-        return 'This account has been disabled.';
+        return 'This account has been disabled. Please contact support.';
+      case 'auth/network-request-failed':
+        return 'Network error. Please check your internet connection and try again.';
+      case 'auth/invalid-email':
+        return 'Please enter a valid email address.';
       default:
-        return 'An error occurred during login. Please try again.';
+        return error.message || 'An error occurred during login. Please try again.';
     }
-  }
-
-  private navigateToDashboard() {
-    this.router.navigate(['/course-dashboard']);
   }
 
   navigateTo(route: string): void {
     if (route === 'CreateAccount') {
-      this.router.navigateByUrl('/create-user-account');
+      this.router.navigate(['/create-user-account']);
     }
+  }
+
+  // Method to handle forgot password (for future implementation)
+  onForgotPassword() {
+    // TODO: Implement forgot password functionality
+    console.log('Forgot password clicked');
+  }
+
+  // Add manual navigation method
+  proceedToHome() {
+    this.router.navigate(['/home'], { replaceUrl: true });
   }
 }
